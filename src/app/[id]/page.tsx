@@ -6,8 +6,13 @@ import LineAdd from '@/components/LineAdd'
 import GallerySection from '@/components/GallerySection'
 import type { Metadata } from 'next'
 import ServiceSection from '@/components/ServiceSection'
+import { Province, PageParams } from '@/types';
+import Link from 'next/link'
+import Image from 'next/image';
 
-const provinces = [
+
+
+const provinces: Province[] = [
   { id: '%E0%B8%A3%E0%B8%96%E0%B9%80%E0%B8%AE%E0%B8%B5%E0%B9%8A%E0%B8%A2%E0%B8%9A%E0%B8%82%E0%B8%AD%E0%B8%99%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99', name: 'ขอนแก่น' },
   { id: '%E0%B8%A3%E0%B8%96%E0%B9%80%E0%B8%AE%E0%B8%B5%E0%B9%8A%E0%B8%A2%E0%B8%9A%E0%B8%AD%E0%B8%B8%E0%B8%94%E0%B8%A3%E0%B8%98%E0%B8%B2%E0%B8%99%E0%B8%B5', name: 'อุดรธานี' },
   { id: '%E0%B8%A3%E0%B8%96%E0%B9%80%E0%B8%AE%E0%B8%B5%E0%B9%8A%E0%B8%A2%E0%B8%9A%E0%B8%AB%E0%B8%99%E0%B8%AD%E0%B8%87%E0%B8%84%E0%B8%B2%E0%B8%A2', name: 'หนองคาย' },
@@ -30,26 +35,47 @@ const provinces = [
   { id: '%E0%B8%A3%E0%B8%96%E0%B9%80%E0%B8%AE%E0%B8%B5%E0%B9%8A%E0%B8%A2%E0%B8%9A%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A3%E0%B8%B2%E0%B8%8A%E0%B8%AA%E0%B8%B5%E0%B8%A1%E0%B8%B2', name: 'นครราชสีมา' }
 ];
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<PageParams[]> {
   return provinces.map(province => ({
     id: province.id
-  }))
+  }));
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const province = provinces.find(p => p.id === params.id)
+export async function generateMetadata({ params }: { params: PageParams }): Promise<Metadata> {
+  const province = provinces.find(p => p.id === params.id);
+  if (!province) return {
+    title: 'ไม่พบข้อมูลจังหวัด',
+  };
   return {
-    title: `รถเฮี๊ยบ${province?.name} | บริการรถเครนครบวงจร`,
-    description: `บริการรถเฮี๊ยบและรถเครนใน${province?.name} ทุกขนาด 3-25 ตัน รับจ้างขนย้ายทุกประเภท ประสบการณ์กว่า 10 ปี`,
-    keywords: [`รถเฮี๊ยบ${province?.name}`, `รถเครน${province?.name}`, `รับจ้างขนย้าย${province?.name}`],
+    title: `รถเฮี๊ยบ${province.name} | บริการรถเครนครบวงจร`,
+    description: `บริการรถเฮี๊ยบและรถเครนใน${province.name} ทุกขนาด 3-25 ตัน`,
+    keywords: [`รถเฮี๊ยบ${province.name}`, `รถเครน${province.name}`],
     alternates: {
-      canonical: `https://yourdomain.com/${province?.id}`,
+      canonical: `https://yourdomain.com/${province.id}`,
+    },
+    openGraph: {
+      images: ['/img/og-image.jpg'], // เพิ่ม OG Image
     }
-  }
+  };
 }
 
-export default function ProvincePage({ params }: { params: { id: string } }) {
-  const province = provinces.find(p => p.id === params.id)
+export default function ProvincePage({ params }: { params: PageParams }) {
+  const province = provinces.find(p => p.id === params.id);
+  
+  if (!province) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">ไม่พบข้อมูลจังหวัด</h1>
+          <Link href="/" className="text-blue-500 hover:underline">
+            กลับสู่หน้าหลัก
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+
 
   return (
     <main className="min-h-screen">
@@ -60,8 +86,14 @@ export default function ProvincePage({ params }: { params: { id: string } }) {
                   <h1 className="text-4xl md:text-5xl font-bold mb-4">รถเครน{province?.name}</h1>
                   <h1 className="text-3xl md:text-4xl font-bold mb-4 text-yellow-300">รถเฮี๊ยบ 3-5-8 ตัน และ เครน 10-25 ตัน</h1>
 
-            <img className="w-full md mt-10 mb-10 h-auto max-h-[400px] object-contain"src="img/003.jpg" alt="" />
-          <p className="text-x0.7 md:text-2xl mb-8">เราให้บริการรถเฮี๊ยบครบทุกขนาด ทั้งรถเฮี๊ยบ 3 ตัน 5 ตัน และ 8 ตัน 
+<Image
+  src="/img/003.jpg"
+  alt={`บริการรถเฮี๊ยบและรถเครนใน${province.name}`}
+  width={800}
+  height={450}
+  className="w-full mt-10 mb-10 h-auto max-h-[400px] object-contain"
+  priority
+/>          <p className="text-x0.7 md:text-2xl mb-8">เราให้บริการรถเฮี๊ยบครบทุกขนาด ทั้งรถเฮี๊ยบ 3 ตัน 5 ตัน และ 8 ตัน 
             พร้อมรถเครนยกของหนักขนาด 10-25 ตัน สำหรับงานขนย้ายทุกประเภท 
             ทุกขนาดงาน ด้วยประสบการณ์มากกว่า 10 ปีในวงการขนย้าย 
             กดโทรปรึกษาได้เลยทันที </p>
